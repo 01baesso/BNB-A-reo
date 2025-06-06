@@ -1,0 +1,52 @@
+<!-- templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BNB Aéreo (Demo Flask)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+</head>
+<body>
+  <!-- Header / Navbar -->
+  <header>
+    <div class="container">
+      <div class="logo">BNB Aéreo</div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Início</a></li>
+          <li><a href="{{ url_for('usuarios_list') }}">Usuários</a></li>
+          <li><a href="{{ url_for('imoveis_list') }}">Imóveis</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Mensagens Flash (erro / sucesso) -->
+  <div class="container" style="margin-top:20px;">
+    {# Carrega as mensagens com categorias (error ou success) #}
+    {% set mensagens = get_flashed_messages(with_categories=True) %}
+
+    {% if mensagens %}
+      {% for categoria, msg in mensagens %}
+        <div class="card {% if categoria == 'error' %}alert-error{% else %}alert-success{% endif %}">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Conteúdo principal -->
+  <main class="container">
+    {% block content %}
+    <!-- Cada template filho preenche aqui -->
+    {% endblock %}
+  </main>
+
+  <!-- Footer simples -->
+  <footer class="container" style="padding: 24px 0; text-align: center; color: #777;">
+    <p>Demo BNB Aéreo &copy; 2025</p>
+  </footer>
+</body>
+</html>

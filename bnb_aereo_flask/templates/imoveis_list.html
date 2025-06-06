@@ -1,0 +1,73 @@
+<!-- templates/imoveis_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Imóveis</h2>
+
+  <div style="margin: 16px 0;">
+    <a href="{{ url_for('imovel_novo') }}" class="btn">Novo Imóvel</a>
+  </div>
+
+  <!-- Formulário de filtro -->
+  <form method="GET" action="{{ url_for('imoveis_list') }}" style="margin-bottom: 24px;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <input type="text" name="cidade"
+             placeholder="Filtrar por cidade"
+             value="{{ filtros.cidade or '' }}" />
+      <input type="text" name="estado"
+             placeholder="Filtrar por estado"
+             value="{{ filtros.estado or '' }}" />
+      <select name="tipo">
+        <option value="">Todos os tipos</option>
+        <option value="Apartamento" {% if filtros.tipo == 'Apartamento' %}selected{% endif %}>Apartamento</option>
+        <option value="Casa" {% if filtros.tipo == 'Casa' %}selected{% endif %}>Casa</option>
+        <option value="Flat" {% if filtros.tipo == 'Flat' %}selected{% endif %}>Flat</option>
+      </select>
+      <button type="submit" class="btn">Filtrar</button>
+    </div>
+  </form>
+
+  <!-- Tabela de imóveis -->
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Localização</th>
+        <th>Preço (R$)</th>
+        <th>Proprietário</th>
+        <th>Acomoda</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for im in imoveis %}
+        <tr>
+          <td>{{ im.titulo }}</td>
+          <td>{{ im.cidade }} / {{ im.estado }}</td>
+          <td>{{ "%.2f"|format(im.preco_noite) }}</td>
+          <td>
+            {%- set prop = usuarios | selectattr("id", "equalto", im.proprietario_id) | list -%}
+            {{ prop[0].nome if prop else im.proprietario_id }}
+          </td>
+          <td>{{ im.acomoda_hospedes }} hóspedes</td>
+          <td>
+            <a href="{{ url_for('imovel_editar', id=im.id) }}"
+               class="btn" style="padding:6px 10px; font-size:0.9rem;">Editar</a>
+            <form method="POST" action="{{ url_for('imovel_remover', id=im.id) }}"
+                  style="display:inline;">
+              <button type="submit" class="btn btn-danger"
+                      style="padding:6px 10px; font-size:0.9rem;">Remover</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      {% if imoveis|length == 0 %}
+        <tr>
+          <td colspan="6" style="text-align:center; padding:16px;">
+            Nenhum imóvel encontrado.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+{% endblock %}
