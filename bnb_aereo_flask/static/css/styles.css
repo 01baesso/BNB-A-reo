@@ -1,0 +1,171 @@
+/* static/css/styles.css */
+
+/* ---------------------------
+   1. Variáveis de cor
+   --------------------------- */
+:root {
+  --cor-primary:       #F5B895;  /* tom pêssego claro */
+  --cor-primary-dark:  #E69A76;  /* hover um pouco mais escuro */
+  --cor-accent:        #F39C83;  /* tom salmão suave */
+  --cor-bg-light:      #FDF1EE;  /* fundo geral */
+  --cor-bg:            #FFFFFF;  /* whitesmoke para cards */
+  --cor-text-dark:     #333333;  /* texto escuro */
+  --cor-text-light:    #FFFFFF;  /* texto claro em botões */
+  --radius:            8px;
+  --gap:               16px;
+}
+
+/* ---------------------------
+   2. Reset básico
+   --------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--cor-bg-light);
+  color: var(--cor-text-dark);
+  line-height: 1.6;
+}
+
+/* ---------------------------
+   3. Header / Navbar
+   --------------------------- */
+header {
+  background: linear-gradient(135deg, var(--cor-primary) 0%, var(--cor-accent) 100%);
+  padding: var(--gap);
+  color: var(--cor-text-light);
+}
+header .logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: var(--gap);
+  margin-top: 12px;
+}
+nav ul li a {
+  color: var(--cor-text-light);
+  text-decoration: none;
+  font-weight: 500;
+}
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------
+   4. Container geral
+   --------------------------- */
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--gap) 0;
+}
+
+/* ---------------------------
+   5. Botões
+   --------------------------- */
+.btn {
+  display: inline-block;
+  background-color: var(--cor-primary);
+  color: var(--cor-text-light);
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  text-align: center;
+}
+.btn:hover {
+  background-color: var(--cor-primary-dark);
+}
+.btn-danger {
+  background-color: #E74C3C;
+}
+.btn-danger:hover {
+  background-color: #C0392B;
+}
+
+/* ---------------------------
+   6. Cards / Tabelas
+   --------------------------- */
+.card {
+  background-color: var(--cor-bg);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: var(--gap);
+  margin-bottom: var(--gap);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--cor-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  margin-bottom: var(--gap);
+}
+.table th, .table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+.table th {
+  background-color: var(--cor-primary);
+  color: var(--cor-text-light);
+  font-weight: 600;
+}
+.table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+.table tbody tr td form {
+  display: inline;
+}
+
+/* ---------------------------
+   7. Formulários
+   --------------------------- */
+label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  margin-bottom: var(--gap);
+  font-family: inherit;
+  font-size: 1rem;
+}
+textarea {
+  resize: vertical;
+}
+form .actions {
+  margin-top: var(--gap);
+}
+
+/* ---------------------------
+   8. Responsividade simples
+   --------------------------- */
+@media (max-width: 768px) {
+  .table th, .table td {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  header .logo {
+    font-size: 1.4rem;
+  }
+  nav ul {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
