@@ -25,3 +25,25 @@ Inspirado no Airbnb, o sistema permite cadastro e gerenciamento de usuários e i
 ### Instalar dependências
 ```bash
 pip install flask selenium pytest
+```
+
+### Executar o servidor
+```bash
+python app.py
+```
+
+### Rodar testes automatizados (em outro terminal)
+```bash
+pytest -q
+```
+
+---
+
+## 👥 Integrantes
+Grupo 07 – Engenharia de Software – XDES84
+
+Lucas Baesso
+
+Rafael Fernando
+
+Lucas Arouca
