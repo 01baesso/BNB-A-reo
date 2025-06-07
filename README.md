@@ -40,7 +40,7 @@ pytest -q
 ---
 
 ## 👥 Integrantes
-Grupo 07 – Engenharia de Software – XDES84
+Grupo 07 – Engenharia de Software – XDES04
 
 Lucas Baesso
 
