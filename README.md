@@ -34,7 +34,7 @@ python app.py
 
 ### Rodar testes automatizados (em outro terminal)
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 ---
