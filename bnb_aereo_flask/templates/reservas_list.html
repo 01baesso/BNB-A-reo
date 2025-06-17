@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Reservas</h2>
+  <form method="get" class="card">
+    <label for="hospede">Filtro por Hóspede</label>
+    <input type="text" id="hospede" name="hospede" value="{{ filtros.hospede }}">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Todos</option>
+      <option value="Pendente" {% if filtros.status=='Pendente' %}selected{% endif %}>Pendente</option>
+      <option value="Confirmada" {% if filtros.status=='Confirmada' %}selected{% endif %}>Confirmada</option>
+      <option value="Cancelada" {% if filtros.status=='Cancelada' %}selected{% endif %}>Cancelada</option>
+    </select>
+    <div class="actions">
+      <button class="btn" type="submit">Filtrar</button>
+      <a class="btn" href="{{ url_for('reserva_novo') }}">Novo Reserva</a>
+    </div>
+  </form>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th><th>Hóspede</th><th>Imóvel</th><th>Check-in</th><th>Check-out</th><th>Preço Total</th><th>Status</th><th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reservas %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.hospede_nome }}</td>
+        <td>{{ r.imovel_titulo }}</td>
+        <td>{{ r.checkin }}</td>
+        <td>{{ r.checkout }}</td>
+        <td>{{ r.preco_total }}</td>
+        <td>{{ r.status }}</td>
+        <td>
+          <a href="{{ url_for('reserva_editar', id=r.id) }}">Editar</a>
+          <form method="post" action="{{ url_for('reserva_remover', id=r.id) }}" style="display:inline">
+            <button class="btn btn-danger" type="submit">Remover</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

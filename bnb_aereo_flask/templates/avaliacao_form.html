@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h2>{{ 'Editar Avaliação' if acao=='editar' else 'Nova Avaliação' }}</h2>
+  <form method="post">
+    {% if acao=='criar' %}
+    <label for="reserva_id">Reserva</label>
+    <select id="reserva_id" name="reserva_id">
+      {% for r in reservas %}
+      <option value="{{ r.id }}">#{{ r.id }} - {{ r.imovel_titulo }} ({{ r.hospede_id }})</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+
+    <label for="nota">Nota (1-5)</label>
+    <input type="number" id="nota" name="nota" min="1" max="5" value="{{ avaliacao.nota if avaliacao.nota }}">
+
+    <label for="comentario">Comentário</label>
+    <textarea id="comentario" name="comentario">{{ avaliacao.comentario if avaliacao.comentario }}</textarea>
+
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Atualizar' if acao=='editar' else 'Criar' }}</button>
+      <a href="{{ url_for('avaliacoes_list') }}" class="btn btn-danger">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

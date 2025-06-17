@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h2>{{ 'Editar Reserva' if acao=='editar' else 'Nova Reserva' }}</h2>
+  <form method="post">
+    <label for="hospede_id">Hóspede</label>
+    <select id="hospede_id" name="hospede_id">
+      {% for u in hospedes %}
+      <option value="{{ u.id }}" {% if reserva.hospede_id==u.id %}selected{% endif %}>{{ u.nome }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="imovel_id">Imóvel</label>
+    <select id="imovel_id" name="imovel_id">
+      {% for i in imoveis %}
+      <option value="{{ i.id }}" {% if reserva.imovel_id==i.id %}selected{% endif %}>{{ i.titulo }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="checkin">Check-in</label>
+    <input type="date" id="checkin" name="checkin" value="{{ reserva.checkin if reserva.checkin }}">
+
+    <label for="checkout">Check-out</label>
+    <input type="date" id="checkout" name="checkout" value="{{ reserva.checkout if reserva.checkout }}">
+
+    <label for="qtd_hospedes">Qtd. de Hóspedes</label>
+    <input type="number" id="qtd_hospedes" name="qtd_hospedes" min="1" value="{{ reserva.qtd_hospedes if reserva.qtd_hospedes }}">
+
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Atualizar' if acao=='editar' else 'Criar' }}</button>
+      <a href="{{ url_for('reservas_list') }}" class="btn btn-danger">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

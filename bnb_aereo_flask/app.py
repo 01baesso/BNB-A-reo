@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from datetime import datetime, date, timedelta
 
 app = Flask(__name__)
 app.secret_key = "uma_chave_secreta_qualquer"  # necessário para flash messages
@@ -18,6 +19,12 @@ proximo_id_usuario = 1
 # acomoda_hospedes, preco_noite, proprietario_id, ativo
 imoveis = []
 proximo_id_imovel = 1
+
+reservas = []
+proximo_id_reserva = 1
+
+avaliacoes = []
+proximo_id_avaliacao = 1
 
 # ---------------------------------------------------
 # 2. Rotas Gerais (Home)
@@ -333,6 +340,199 @@ def imovel_remover(id):
     im["ativo"] = False
     flash("Imóvel removido/desativado com sucesso!", "success")
     return redirect(url_for("imoveis_list"))
+
+# =====================
+# CRUD de Reservas
+# =====================
+@app.route('/reservas')
+def reservas_list():
+    filtro_hospede = request.args.get('hospede', '').lower()
+    filtro_status = request.args.get('status', '')
+    resultados = []
+    for r in reservas:
+        # busca por nome do hóspede
+        hosp = next((u for u in usuarios if u['id']==r['hospede_id']), None)
+        match_hosp = filtro_hospede in hosp['nome'].lower() if filtro_hospede else True
+        match_status = (r['status']==filtro_status) if filtro_status else True
+        if match_hosp and match_status:
+            r_display = r.copy()
+            r_display['hospede_nome'] = hosp['nome']
+            im = next((i for i in imoveis if i['id']==r['imovel_id']), None)
+            r_display['imovel_titulo'] = im['titulo'] if im else ''
+            resultados.append(r_display)
+    return render_template('reservas_list.html', reservas=resultados, filtros={'hospede': filtro_hospede, 'status': filtro_status})
+
+@app.route('/reservas/novo', methods=['GET','POST'])
+def reserva_novo():
+    global proximo_id_reserva
+    if request.method=='GET':
+        # enviar listas de hóspedes e imóveis
+        hospedes = [u for u in usuarios if u['tipo']=='hospede']
+        ativos = [i for i in imoveis if i['ativo']]
+        return render_template('reserva_form.html', acao='criar', reserva={}, hospedes=hospedes, imoveis=ativos)
+
+    # POST: criar reserva
+    imovel_id = int(request.form.get('imovel_id','0'))
+    hospede_id = int(request.form.get('hospede_id','0'))
+    checkin_s = request.form.get('checkin','')
+    checkout_s = request.form.get('checkout','')
+    qtd = request.form.get('qtd_hospedes','')
+    try:
+        checkin = datetime.strptime(checkin_s, '%Y-%m-%d').date()
+        checkout = datetime.strptime(checkout_s, '%Y-%m-%d').date()
+    except:
+        flash('Datas inválidas.', 'error')
+        return redirect(url_for('reserva_novo'))
+    if checkout <= checkin:
+        flash('Check-out deve ser após check-in.', 'error')
+        return redirect(url_for('reserva_novo'))
+    # ver disponibilidade
+    for r in reservas:
+        if r['imovel_id']==imovel_id and r['status']!='Cancelada':
+            if checkin < r['checkout'] and checkout > r['checkin']:
+                flash('Imóvel indisponível no intervalo informado.', 'error')
+                return redirect(url_for('reserva_novo'))
+    # cálculo preço
+    im = next((i for i in imoveis if i['id']==imovel_id), None)
+    noites = (checkout - checkin).days
+    total = im['preco_noite'] * noites
+    nova = {
+        'id': proximo_id_reserva,
+        'imovel_id': imovel_id,
+        'hospede_id': hospede_id,
+        'checkin': checkin,
+        'checkout': checkout,
+        'qtd_hospedes': int(qtd),
+        'preco_total': total,
+        'status': 'Pendente'
+    }
+    reservas.append(nova)
+    proximo_id_reserva += 1
+    flash('Reserva criada com sucesso!', 'success')
+    return redirect(url_for('reservas_list'))
+
+@app.route('/reservas/<int:id>/editar', methods=['GET','POST'])
+def reserva_editar(id):
+    r = next((r for r in reservas if r['id']==id), None)
+    if not r:
+        flash('Reserva não encontrada.', 'error')
+        return redirect(url_for('reservas_list'))
+    hoje = date.today()
+    if request.method=='GET':
+        hospedes = [u for u in usuarios if u['tipo']=='hospede']
+        ativos = [i for i in imoveis if i['ativo']]
+        return render_template('reserva_form.html', acao='editar', reserva=r, hospedes=hospedes, imoveis=ativos)
+    # POST: atualizar
+    checkin = datetime.strptime(request.form.get('checkin'), '%Y-%m-%d').date()
+    checkout = datetime.strptime(request.form.get('checkout'), '%Y-%m-%d').date()
+    if checkin <= hoje:
+        flash('Não é possível editar após início da estadia.', 'error')
+        return redirect(url_for('reservas_list'))
+    # mesma validação de disponibilidade
+    for other in reservas:
+        if other['id']!=id and other['imovel_id']==r['imovel_id'] and other['status']!='Cancelada':
+            if checkin < other['checkout'] and checkout > other['checkin']:
+                flash('Imóvel indisponível no novo intervalo.', 'error')
+                return redirect(url_for('reservas_list'))
+    r['checkin'] = checkin
+    r['checkout'] = checkout
+    noites = (checkout - checkin).days
+    r['preco_total'] = next(i for i in imoveis if i['id']==r['imovel_id'])['preco_noite'] * noites
+    flash('Reserva atualizada.', 'success')
+    return redirect(url_for('reservas_list'))
+
+@app.route('/reservas/<int:id>/remover', methods=['POST'])
+def reserva_remover(id):
+    r = next((r for r in reservas if r['id']==id), None)
+    if not r:
+        flash('Reserva não encontrada.', 'error')
+    else:
+        if date.today() >= r['checkin']:
+            r['status'] = 'Cancelada'
+            flash('Reserva cancelada.', 'success')
+        else:
+            reservas.remove(r)
+            flash('Reserva removida.', 'success')
+    return redirect(url_for('reservas_list'))
+
+# =====================
+# CRUD de Avaliações
+# =====================
+@app.route('/avaliacoes')
+def avaliacoes_list():
+    filtro_nota = request.args.get('nota_min', '')
+    resultados = []
+    for a in avaliacoes:
+        hosp = next((u for u in usuarios if u['id']==a['hospede_id']), None)
+        im = next((i for i in imoveis if i['id']==a['imovel_id']), None)
+        if filtro_nota and a['nota'] < int(filtro_nota):
+            continue
+        rec = a.copy()
+        rec['hospede_nome'] = hosp['nome']
+        rec['imovel_titulo'] = im['titulo']
+        resultados.append(rec)
+    return render_template('avaliacoes_list.html', avaliacoes=resultados, filtro_nota=filtro_nota)
+
+@app.route('/avaliacoes/novo', methods=['GET','POST'])
+def avaliacao_novo():
+    global proximo_id_avaliacao
+    if request.method=='GET':
+        # só reservas concluídas
+        concluidas = [r for r in reservas if r['checkout'] < date.today()]
+        return render_template('avaliacao_form.html', acao='criar', avaliacao={}, reservas=concluidas)
+    # POST
+    reserva_id = int(request.form.get('reserva_id'))
+    nota = int(request.form.get('nota'))
+    comentario = request.form.get('comentario','').strip()
+    # única avaliação por reserva
+    if any(a['reserva_id']==reserva_id for a in avaliacoes):
+        flash('Avaliação já existe para esta reserva.', 'error')
+        return redirect(url_for('avaliacao_novo'))
+    # criar
+    res = next(r for r in reservas if r['id']==reserva_id)
+    hospede_id = res['hospede_id']
+    imovel_id = res['imovel_id']
+    now = datetime.now()
+    nova = {
+        'id': proximo_id_avaliacao,
+        'reserva_id': reserva_id,
+        'hospede_id': hospede_id,
+        'imovel_id': imovel_id,
+        'nota': nota,
+        'comentario': comentario,
+        'data': now
+    }
+    avaliacoes.append(nova)
+    proximo_id_avaliacao += 1
+    flash('Avaliação cadastrada!', 'success')
+    return redirect(url_for('avaliacoes_list'))
+
+@app.route('/avaliacoes/<int:id>/editar', methods=['GET','POST'])
+def avaliacao_editar(id):
+    a = next((a for a in avaliacoes if a['id']==id), None)
+    if not a:
+        flash('Avaliação não encontrada.', 'error')
+        return redirect(url_for('avaliacoes_list'))
+    if request.method=='GET':
+        return render_template('avaliacao_form.html', acao='editar', avaliacao=a)
+    # POST
+    if datetime.now() - a['data'] > timedelta(hours=24):
+        flash('Prazo de 24h para editar expirado.', 'error')
+        return redirect(url_for('avaliacoes_list'))
+    a['nota'] = int(request.form.get('nota'))
+    a['comentario'] = request.form.get('comentario','').strip()
+    flash('Avaliação atualizada.', 'success')
+    return redirect(url_for('avaliacoes_list'))
+
+@app.route('/avaliacoes/<int:id>/remover', methods=['POST'])
+def avaliacao_remover(id):
+    a = next((a for a in avaliacoes if a['id']==id), None)
+    if not a:
+        flash('Avaliação não encontrada.', 'error')
+    else:
+        avaliacoes.remove(a)
+        flash('Avaliação removida.', 'success')
+    return redirect(url_for('avaliacoes_list'))
 
 # ---------------------------------------------------
 # 5. Execução do servidor
